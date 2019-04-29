@@ -16,7 +16,7 @@ def get_flux_BB(inclination, log_T, E_list):
     in a spin-aligned system given inclination and T."""
 
     import numpy as np
-    from Interp_g_T_eta import lookup_alpha 
+    from Interp_g_T_zeta import lookup_alpha 
     
     #Define constants
     h = 6.626e-27 #planck const in erg*s
@@ -55,19 +55,19 @@ def get_flux_BB(inclination, log_T, E_list):
      
     for i in range(len(theta_all)):
         for j in range(len(phi_all)):
-            #eta = cos psi 
+            #zeta = cos psi 
             #print(i,j)
-            eta = np.cos(incl)*np.cos(theta_all[i])\
+            zeta = np.cos(incl)*np.cos(theta_all[i])\
                              + np.sin(incl)*np.sin(theta_all[i])*np.cos(phi_all[j])
            
-            psi = np.arccos(eta)
+            psi = np.arccos(zeta) #arccos only valid for 0 - 90
             print('theta =', theta_all[i], 'phi =', phi_all[j])
             print('psi input =', psi)
             
-            alpha, dmu_deta = lookup_alpha(M_over_R, psi)
+            alpha, dmu_dzeta = lookup_alpha(M_over_R, psi)
             mu = np.cos(alpha)
             
-            print('alpha =', alpha, 'dmu_deta =', dmu_deta)
+            print('alpha =', alpha, 'dmu_dzeta =', dmu_dzeta)
             Inu = const*((k_B*T*E_list)**3)/(np.e**(E_list) - 1)
             F_integrand = np.zeros(len(Inu))
             
@@ -76,7 +76,7 @@ def get_flux_BB(inclination, log_T, E_list):
                 #F_integrand = np.zeros(len(Inu))
                 for k in range(len(Inu)):
                     F_integrand[k] = (np.sin(theta_all[i])*mu*Inu[k]\
-                                *const_inte*dmu_deta)
+                                *const_inte*dmu_dzeta)
                     spectral_flux[k] = spectral_flux[k] + F_integrand[k]
                     spectral_I[k] = spectral_I[k] + Inu[k]*const_inte*redshift**3
             phi_integrand[j] = sum(F_integrand)*E_dx
@@ -90,8 +90,8 @@ def get_flux_H(inclination, log_T, log_g, E_list):
     in a spin-aligned system given inclination, T, and g."""
 
     import numpy as np
-    import Interp_g_T_eta as Ho
-    from Interp_g_T_eta import lookup_alpha
+    import Interp_g_T_zeta as Ho
+    from Interp_g_T_zeta import lookup_alpha
     
     #Define constants
     h = 6.626e-27 #planck const in erg*s
@@ -115,8 +115,8 @@ def get_flux_H(inclination, log_T, log_g, E_list):
     incl = np.radians(inclination)
  
     #Get H atm model for given temp and g
-    E, Inu, Inu_T_high, Inu_T_low, eta_array,\
-                eta_g_high, eta_g_low = Ho.interp_T_and_g(log_T, log_g)
+    E, Inu, Inu_T_high, Inu_T_low, zeta_array,\
+                zeta_g_high, zeta_g_low = Ho.interp_T_and_g(log_T, log_g)
     
     theta_all = np.linspace(1e-06, np.pi,10)
     phi_all = np.linspace(-np.pi,np.pi, 10)
@@ -133,16 +133,16 @@ def get_flux_H(inclination, log_T, log_g, E_list):
     spectral_I = np.zeros(166)
     for i in range(len(theta_all)):
         for j in range(len(phi_all)):
-            #eta = cos psi 
-            eta = np.cos(incl)*np.cos(theta_all[i])\
+            #zeta = cos psi 
+            zeta = np.cos(incl)*np.cos(theta_all[i])\
                             + np.sin(incl)*np.sin(theta_all[i])*np.cos(phi_all[j])
                             
-            psi, alpha, dmu_deta = lookup_alpha(M_over_R, np.arccos(eta))
+            psi, alpha, dmu_dzeta = lookup_alpha(M_over_R, np.arccos(zeta))
             mu = np.cos(alpha)
             
             #use mu instead of eta in interpolation function 
-            E_temp, Inu_temp = Ho.interp_eta(mu, E, Inu, Inu_T_high,\
-            Inu_T_low, eta_array, eta_g_high,eta_g_low, log_g, log_T)
+            E_temp, Inu_temp = Ho.interp_zeta(mu, E, Inu, Inu_T_high,\
+            Inu_T_low, zeta_array, zeta_g_high, zeta_g_low, log_g, log_T)
         
             Inu_final = Ho.interp_E(E_temp, Inu_temp, E_list)
             

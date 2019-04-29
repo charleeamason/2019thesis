@@ -25,7 +25,7 @@ def get_flux_BB(inclination, log_T, E_list):
     #Initial parameters:
     spin_freq = 0 #1/s
     M = 2.78e33 #1.4 solar masses in grams
-    R = 1.2e6 #cm
+    R = 2.06e6 #cm
     dist = 6.1713552e20 #200 pc in cm
     solid_const = R**2/dist**2
     
@@ -50,8 +50,8 @@ def get_flux_BB(inclination, log_T, E_list):
     
     for i in range(len(theta_all)):
         for j in range(len(phi_all)):
-            #eta = cos psi (= cos alpha for newton)
-            eta = np.cos(incl)*np.cos(theta_all[i])\
+            #zeta = cos psi (= cos alpha for newton)
+            zeta = np.cos(incl)*np.cos(theta_all[i])\
                              + np.sin(incl)*np.sin(theta_all[i])*np.cos(phi_all[j])
             #print(eta)
             Inu = const*((k_B*T*E_list)**3)/(np.e**(E_list) - 1)
@@ -60,10 +60,10 @@ def get_flux_BB(inclination, log_T, E_list):
             
             #exlude sections of rings we cannot see (negative values of eta)
             
-            if eta > 0:
+            if zeta > 0:
                 #F_integrand = np.zeros(len(Inu))
                 for k in range(len(Inu)):
-                    F_integrand[k]  = eta*np.sin(theta_all[i])*\
+                    F_integrand[k]  = zeta*np.sin(theta_all[i])*\
                                       Inu[k]*const_inte
                     spectral_flux[k] = spectral_flux[k] + F_integrand[k]
                     spectral_I[k] = spectral_I[k] + Inu[k]*const_inte
@@ -78,7 +78,7 @@ def get_flux_H(inclination, log_T, log_g, E_list):
     in a spin-aligned system given inclination, T, and g."""
 
     import numpy as np
-    import Interp_g_T_eta as Ho
+    import Interp_g_T_zeta as Ho
     #Define constants
     h = 6.626e-27 #planck const in erg*s
     c = 3e10 #speed of light cm/s 
@@ -87,7 +87,7 @@ def get_flux_H(inclination, log_T, log_g, E_list):
     #Initial parameters:
     spin_freq = 0 #1/s
     M = 2.78e33 #1.4 solar masses in grams
-    R = 1.2e6 #cm
+    R = 2.06e6 #cm
     dist = 6.1713552e20 #200 pc in cm
     solid_const = R**2/dist**2
     
@@ -97,8 +97,8 @@ def get_flux_H(inclination, log_T, log_g, E_list):
     incl = np.radians(inclination)
  
     #Get H atm model for given temp and g
-    E, Inu, Inu_T_high, Inu_T_low, eta_array,\
-                eta_g_high, eta_g_low = Ho.interp_T_and_g(log_T, log_g)
+    E, Inu, Inu_T_high, Inu_T_low, zeta_array,\
+                zeta_g_high, zeta_g_low = Ho.interp_T_and_g(log_T, log_g)
 
     E_dx = 0.2
     theta_all = np.linspace(1e-06, np.pi,30)
@@ -115,21 +115,21 @@ def get_flux_H(inclination, log_T, log_g, E_list):
     spectral_I = np.zeros(166)
     for i in range(len(theta_all)):
         for j in range(len(phi_all)):
-            #eta = cos psi (= cos alpha for newton)
-            eta = np.cos(incl)*np.cos(theta_all[i])\
+            #zeta = cos psi (= cos alpha for newton)
+            zeta = np.cos(incl)*np.cos(theta_all[i])\
                             + np.sin(incl)*np.sin(theta_all[i])*np.cos(phi_all[j])
                                 
-            E_temp, Inu_temp = Ho.interp_eta(eta, E, Inu, Inu_T_high,\
-            Inu_T_low, eta_array, eta_g_high,eta_g_low, log_g, log_T)
+            E_temp, Inu_temp = Ho.interp_zeta(zeta, E, Inu, Inu_T_high,\
+            Inu_T_low, zeta_array, zeta_g_high,zeta_g_low, log_g, log_T)
         
             Inu_final = Ho.interp_E(E_temp, Inu_temp, E_list)
             
             #exlude sections of rings we cannot see (negative values of mu)
             F_integrand = np.zeros(len(Inu_final))
             I_integrand = np.zeros(len(Inu_final))
-            if eta > 0:
+            if zeta > 0:
                 for k in range(len(Inu_final)):
-                    F_integrand[k] = eta*np.sin(theta_all[i])*\
+                    F_integrand[k] = zeta*np.sin(theta_all[i])*\
                                      Inu_final[k]*const_inte
                     I_integrand[k] = Inu_final[k]*const_inte
                     spectral_flux[k] = spectral_flux[k] + F_integrand[k]
