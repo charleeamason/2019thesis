@@ -128,9 +128,9 @@ def interp_T_and_g(log_T, log_g):
         #Find closest pair to given log_g
         log_g_high, log_g_low = get_nearest_pair(log_g_array,0.1,log_g)
            
-    #E and eta same across all files    
+    #E and zeta same across all files    
     log_E_over_kT = data_low[:,0]  #emitted photon energy/kT
-    eta_array = data_low[:,1] #cos theta; theta = zenith angle
+    zeta_array = data_low[:,1] #cos theta; theta = zenith angle
     
     #Get specific intensity and temperatures from files
     log_Inu_over_T_low = data_low[:,2] #specific intensity/T^3
@@ -148,51 +148,77 @@ def interp_T_and_g(log_T, log_g):
     fixed_g_high = np.where(log_g_array == log_g_high)
     Inu_g_high_high = Inu_over_T_high[fixed_g_high] 
     Inu_g_high_low = Inu_over_T_low[fixed_g_high] 
-    eta_g_high = eta_array[fixed_g_high]
+    zeta_g_high = zeta_array[fixed_g_high]
     
     fixed_g_low = np.where(log_g_array == log_g_low)
     Inu_g_low_high = Inu_over_T_high[fixed_g_low] 
     Inu_g_low_low = Inu_over_T_low[fixed_g_low] 
-    eta_g_low = eta_array[fixed_g_low]
+    zeta_g_low = zeta_array[fixed_g_low]
         
     E = E_over_kT[fixed_g_low]
     
-    if log_g_high != log_g_low:
-        #Interpolate 
-        print("Interpolating T for log_g_high and log_g_low.")
-        Inu_g_high = [None]*len(E)
-        for i in range(len(E)):  
-            Inu_g_high[i] = ((Inu_g_high_high[i] - Inu_g_high_low[i])/(log_T_high - log_T_low))\
-            *(log_T - log_T_low) + Inu_g_high_low[i]  
-            
-        Inu_g_low = [None]*len(E)
-        for i in range(len(E)):  
-            Inu_g_low[i] = ((Inu_g_low_high[i] - Inu_g_low_low[i])/(log_T_high - log_T_low))\
-            *(log_T - log_T_low) + Inu_g_low_low[i]
-            
-        print("Interpolating g.")
-        Inu = [None]*len(E)
-        for i in range(len(E)):  
-            Inu[i] = ((Inu_g_high[i] - Inu_g_low[i])/(log_T_high - log_T_low))\
-            *(log_T - log_T_low) + Inu_g_low[i]
-            
-        #Define upper and lower Inu     
-        Inu_T_high = Inu_over_T_high[fixed_g_high]
-        Inu_T_low = Inu_over_T_low[fixed_g_low]
+    if log_T_high != log_T_low: #T value not in array
         
-    else: 
-        print("No g interpolation necessary.")
-        Inu = [None]*len(E)
-        for i in range(len(E)):
-            Inu[i] = ((Inu_over_T_high[i] - Inu_over_T_low[i])/(log_T_high - log_T_low))\
-            *(log_T - log_T_low) + Inu_over_T_low[i]  
+        if log_g_high != log_g_low:
+            #Interpolate 
+            print("Interpolating T for log_g_high and log_g_low.")
+            Inu_g_high = [None]*len(E)
+            for i in range(len(E)):  
+                Inu_g_high[i] = ((Inu_g_high_high[i] - Inu_g_high_low[i])/(log_T_high - log_T_low))\
+                *(log_T - log_T_low) + Inu_g_high_low[i]  
                 
-        #Define upper and lower Inu  
-        Inu_T_high = Inu_over_T_high
-        Inu_T_low = Inu_over_T_low
+            Inu_g_low = [None]*len(E)
+            for i in range(len(E)):  
+                Inu_g_low[i] = ((Inu_g_low_high[i] - Inu_g_low_low[i])/(log_T_high - log_T_low))\
+                *(log_T - log_T_low) + Inu_g_low_low[i]
+                
+            print("Interpolating g.")
+            Inu = [None]*len(E)
+            for i in range(len(E)):  
+               # Inu[i] = ((Inu_g_high[i] - Inu_g_low[i])/(log_T_high - log_T_low))\
+               # *(log_T - log_T_low) + Inu_g_low[i]
+                 Inu[i] = ((Inu_g_high[i] - Inu_g_low[i])/(log_g_high - log_g_low))\
+                *(log_g - log_g_low) + Inu_g_low[i]
+                
+            #Define upper and lower Inu     
+            Inu_T_high = Inu_over_T_high[fixed_g_high]
+            Inu_T_low = Inu_over_T_low[fixed_g_low]
+            
+        else: 
+            print("No g interpolation necessary.")
+            Inu = [None]*len(E)
+            for i in range(len(E)):
+                Inu[i] = ((Inu_over_T_high[i] - Inu_over_T_low[i])/(log_T_high - log_T_low))\
+                *(log_T - log_T_low) + Inu_over_T_low[i]  
+            #Define upper and lower Inu  
+            Inu_T_high = Inu_over_T_high
+            Inu_T_low = Inu_over_T_low
+            
+    else: #T value is in array!
         
-    return E, Inu, Inu_T_high, Inu_T_low, eta_array, eta_g_high,\
-            eta_g_low
+        if log_g_high != log_g_low:
+            #Interpolate   
+            print("Interpolating g.")
+            Inu = [None]*len(E)
+            for i in range(len(E)):  
+               # Inu[i] = ((Inu_g_high[i] - Inu_g_low[i])/(log_T_high - log_T_low))\
+               # *(log_T - log_T_low) + Inu_g_low[i]
+                Inu[i] = ((Inu_g_high_high[i] - Inu_g_low_high[i])/(log_g_high - log_g_low))\
+                *(log_g - log_g_low) + Inu_g_low_high[i]
+                
+            #Define upper and lower Inu     
+            Inu_T_high = Inu_over_T_high[fixed_g_high]
+            Inu_T_low = Inu_over_T_low[fixed_g_low]
+            
+        else: 
+            print("No g interpolation necessary.")
+            Inu = Inu_over_T_high[fixed_g_high] 
+            #Define upper and lower Inu  
+            Inu_T_high = Inu_over_T_high
+            Inu_T_low = Inu_over_T_low
+        
+    return E, Inu, Inu_T_high, Inu_T_low, zeta_array, zeta_g_high,\
+            zeta_g_low
     
 def interp_zeta(zeta, E, Inu, Inu_T_high, Inu_T_low, zeta_array, zeta_g_high,\
               zeta_g_low, log_g, log_T): 
@@ -221,7 +247,7 @@ def interp_zeta(zeta, E, Inu, Inu_T_high, Inu_T_low, zeta_array, zeta_g_high,\
     
     Inu_np = np.asarray(Inu) #convert Inu to np array
     
-    #Interpolate eta values
+    #Interpolate zeta values
     if zeta_high != zeta_low:
         Inu_zeta_high = Inu_np[fixed_zeta_high]
         Inu_zeta_low = Inu_np[fixed_zeta_low]
@@ -251,18 +277,18 @@ def interp_zeta(zeta, E, Inu, Inu_T_high, Inu_T_low, zeta_array, zeta_g_high,\
     return E_zeta, Inu_zeta
 
 def interp_E(E_zeta, Inu_zeta, E_list):
-    #E_zeta and Inu_zeta are lists produced by eta interp function
+    #E_zeta and Inu_zeta are lists produced by zeta interp function
     #E_list is list of desired E/kT values
     Inu_final = np.zeros(len(E_list))
     E_np = np.around(E_zeta, 6)
     for i in range(len(E_list)):
          #Catch erroneous E values 
         if E_list[i] > max(E_zeta): 
-            print("value out of range--rounding down", i)
+            #print("value out of range--rounding down", i)
             E_high = max(E_zeta)
             E_low = max(E_zeta)
         elif E_list[i] < min(E_zeta):   
-            print("value out of range--rounding up", i)
+            #print("value out of range--rounding up", i)
             E_high = min(E_zeta)
             E_low = min(E_zeta)
         elif E_list[i] in E_zeta: 
@@ -270,13 +296,13 @@ def interp_E(E_zeta, Inu_zeta, E_list):
             E_high = E_list[i]
             E_low = E_list[i]         
         else:
-            print("Choosing nearest pair to E val in E_list",i)
+            #print("Choosing nearest pair to E val in E_list",i)
             #Find closest pair to given E
             E_high, E_low = get_nearest_uneven(E_zeta, E_list[i])
 
         #Interpolate E values
         if E_high != E_low:
-            print("Interpolating E", i)
+            #print("Interpolating E", i)
             E_high_round = np.around(E_high, 6) 
             E_low_round = np.around(E_low, 6)   
             E_high_idx = np.where(E_np == E_high_round)[0]
@@ -291,7 +317,7 @@ def interp_E(E_zeta, Inu_zeta, E_list):
             *(E_list[i] - E_low) + Inu_low
                 
         else:
-            print("No E interpolation necessary.",i)
+            #print("No E interpolation necessary.",i)
             Inu_final[i] = Inu_zeta[i]
     
     return Inu_final
@@ -300,12 +326,12 @@ def lookup_alpha(M_over_R_val, psi_val):
   
     import numpy as np
        # print(psi_val)
-    alpha_all, psi_all, deta_dmu_all, M_over_R_all =\
+    alpha_all, psi_all, dzeta_dmu_all, M_over_R_all =\
         np.loadtxt("lookup_alpha.txt", usecols = (0,2,3,5), unpack = True)
     MR_filter = np.where(M_over_R_val == M_over_R_all)[0]
     
     alpha = alpha_all[MR_filter]
-    deta_dmu = deta_dmu_all[MR_filter]
+    dzeta_dmu = dzeta_dmu_all[MR_filter]
     psi = psi_all[MR_filter]
     psi_rounded = np.zeros(len(psi))
     
@@ -316,30 +342,30 @@ def lookup_alpha(M_over_R_val, psi_val):
     min_psi = np.min(psi)
     
     if psi_val in psi:
-        print("Exact psi is in table (within 4 decimal places).")
-        psi_idx_temp = np.where(np.round(psi_val, 4) == psi)[0]
+        #print("Exact psi is in table (within 4 decimal places).")
+        psi_idx_temp = np.where(np.round(psi_val, 4) == psi_rounded)[0]
         psi_idx = int(psi_idx_temp)
         alpha_final = alpha[psi_idx][0]
-        deta_dmu_final= deta_dmu[psi_idx][0]
+        dzeta_dmu_final= dzeta_dmu[psi_idx][0]
         psi_final = psi_val
-        print(psi_final, alpha_final, deta_dmu_final)
+        print(psi_final, alpha_final, dzeta_dmu_final)
         
     elif psi_val > max_psi:
-        print("Psi value is larger than largest in table.")
-        psi_idx = np.where(np.round(max_psi, 4) == psi)[0]
+        #print("Psi value is larger than largest in table.")
+        psi_idx = np.where(np.round(max_psi, 4) == psi_rounded)[0]
         alpha_final = alpha[psi_idx]
-        deta_dmu_final= deta_dmu[psi_idx]
+        dzeta_dmu_final= dzeta_dmu[psi_idx]
         psi_final = max_psi
         
     elif psi_val < min_psi: 
-        print("Psi value is smaller than smallest in table.")
-        psi_idx= np.where(np.round(min_psi, 4) == psi)[0]
+        #print("Psi value is smaller than smallest in table.")
+        psi_idx= np.where(np.round(min_psi, 4) == psi_rounded)[0]
         alpha_final = alpha[psi_idx]
-        deta_dmu_final= deta_dmu[psi_idx]
+        dzeta_dmu_final= dzeta_dmu[psi_idx]
         psi_final = min_psi
         
     else: 
-        print("Interpolating.")
+        #print("Interpolating.")
         psi_high, psi_low = get_nearest_uneven(psi, psi_val)
         psi_high_idx_temp = np.where(psi_rounded == np.round(psi_high,4))[0]
         psi_low_idx_temp = np.where(psi_rounded == np.round(psi_low,4))[0]
@@ -360,17 +386,17 @@ def lookup_alpha(M_over_R_val, psi_val):
             alpha_final = alpha_high
             #print(alpha_final) 
                    
-        #Interpolate corresponding deta_dmu values
-        deta_dmu_high = deta_dmu[psi_high_idx]
-        deta_dmu_low = deta_dmu[psi_low_idx]
+        #Interpolate corresponding dzeta_dmu values
+        dzeta_dmu_high = dzeta_dmu[psi_high_idx]
+        dzeta_dmu_low = dzeta_dmu[psi_low_idx]
         
-        if deta_dmu_high != deta_dmu_low:
-            #deta_dmu_final = (deta_dmu_high + deta_dmu_low)/2
-            deta_dmu_final = ((deta_dmu_high - deta_dmu_low)/(psi_high - psi_low))\
-                *(psi_val - psi_low) + deta_dmu_low
+        if dzeta_dmu_high != dzeta_dmu_low:
+            #dzeta_dmu_final = (dzeta_dmu_high + deta_dmu_low)/2
+            dzeta_dmu_final = ((dzeta_dmu_high - dzeta_dmu_low)/(psi_high - psi_low))\
+                *(psi_val - psi_low) + dzeta_dmu_low
             #print(deta_dmu_final)
         else: 
-            deta_dmu_final = deta_dmu_high
+            dzeta_dmu_final = dzeta_dmu_high
             #print(deta_dmu_final)
             
-    return alpha_final, deta_dmu_final
+    return alpha_final, dzeta_dmu_final

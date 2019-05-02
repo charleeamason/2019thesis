@@ -25,7 +25,6 @@ def get_flux_BB(inclination, log_T, E_list):
     G = 6.674e-8 #grav constant in dyne cm^2 / g^2
     
     #Initial parameters:
-    spin_freq = 0 #1/s
     M = 2.78e33 #1.4 solar masses in grams
     R = 2.06e6 #cm
     M_over_R = 0.1 #GM/Rc^2
@@ -33,6 +32,8 @@ def get_flux_BB(inclination, log_T, E_list):
     redshift = 1/(1+z) #gravitational redshift factor
     dist = 6.1713552e20 #200 pc in cm
     solid_const = R**2/dist**2
+    spin_freq = 600 #Hz
+    v = spin_freq*2*np.pi*R #linear velocity 
     
     T = 10**log_T
     const = 2/(c**2*h**2) 
@@ -61,14 +62,19 @@ def get_flux_BB(inclination, log_T, E_list):
                              + np.sin(incl)*np.sin(theta_all[i])*np.cos(phi_all[j])
            
             psi = np.arccos(zeta) #arccos only valid for 0 - 90
-            print('theta =', theta_all[i], 'phi =', phi_all[j])
-            print('psi input =', psi)
+           # print('theta =', theta_all[i], 'phi =', phi_all[j])
+            #print('psi input =', psi)
             
             alpha, dmu_dzeta = lookup_alpha(M_over_R, psi)
             mu = np.cos(alpha)
             
-            print('alpha =', alpha, 'dmu_dzeta =', dmu_dzeta)
-            Inu = const*((k_B*T*E_list)**3)/(np.e**(E_list) - 1)
+            #Calculate Doppler boost term
+            cos_xi = (-np.sin(alpha)*np.sin(incl)*np.sin(phi_all[j]))/(np.sin(psi))
+            boost = np.sqrt(1 - v**2/c**2)/(1 + (v/c)*cos_xi)
+            
+            #print('alpha =', alpha, 'dmu_dzeta =', dmu_dzeta)
+            
+            Inu = const*((k_B*T*E_list)**3)/(np.e**(E_list) - 1)*boost**3
             F_integrand = np.zeros(len(Inu))
             
             #exlude sections of rings we cannot see (negative values of mu)
@@ -100,7 +106,6 @@ def get_flux_H(inclination, log_T, log_g, E_list):
     G = 6.674e-8 #grav constant in dyne cm^2 / g^2
     
     #Initial parameters:
-    spin_freq = 0 #1/s
     M = 2.78e33 #1.4 solar masses in grams
     R = 2.06e6  #cm
     M_over_R = 0.1 #GM/Rc^2
@@ -108,6 +113,8 @@ def get_flux_H(inclination, log_T, log_g, E_list):
     redshift = (1/(1+z)**3)
     dist = 6.1713552e20 #200 pc in cm
     solid_const = R**2/dist**2
+    spin_freq = 600 #Hz
+    v = spin_freq*2*np.pi*R #linear velocity 
     
     T = 10**log_T
     const_inte = (k_B*T)/h 
@@ -121,7 +128,7 @@ def get_flux_H(inclination, log_T, log_g, E_list):
     theta_all = np.linspace(1e-06, np.pi,10)
     phi_all = np.linspace(-np.pi,np.pi, 10)
     
-    E_dx = 0.2
+    E_dx = E_list[1] - E_list[0]
     theta_dx = theta_all[1] - theta_all[0]
     phi_dx = phi_all[1] - phi_all[0]
     
@@ -140,6 +147,10 @@ def get_flux_H(inclination, log_T, log_g, E_list):
             psi, alpha, dmu_dzeta = lookup_alpha(M_over_R, np.arccos(zeta))
             mu = np.cos(alpha)
             
+            #Calculate Doppler boost term
+            cos_xi = (-np.sin(alpha)*np.sin(incl)*np.sin(phi_all[j]))/(np.sin(psi))
+            boost = np.sqrt(1 - v**2/c**2)/(1 + (v/c)*cos_xi)
+        
             #use mu instead of eta in interpolation function 
             E_temp, Inu_temp = Ho.interp_zeta(mu, E, Inu, Inu_T_high,\
             Inu_T_low, zeta_array, zeta_g_high, zeta_g_low, log_g, log_T)
@@ -153,9 +164,10 @@ def get_flux_H(inclination, log_T, log_g, E_list):
                 I_integrand = np.zeros(len(Inu_final))
                 
                 for k in range(len(Inu_final)):
-                    F_integrand[k] = (mu*np.sin(theta_all[i])*\
+                    F_integrand[k] = (boost**3)*(mu*np.sin(theta_all[i])*\
                                      Inu_final[k]*const_inte*redshift)/(1-2*M_over_R)
-                    I_integrand[k] = (Inu_final[k]*const_inte*redshift)/(1-2*M_over_R)
+                    I_integrand[k] = (boost**3)*(Inu_final[k]*const_inte*\
+                                     redshift)/(1-2*M_over_R)
                     spectral_flux[k] = spectral_flux[k] + F_integrand[k]
                     spectral_I[k] = spectral_I[k] + I_integrand[k]
             phi_integrand[j] = sum(F_integrand)*E_dx
