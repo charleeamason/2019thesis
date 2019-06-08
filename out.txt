@@ -1,0 +1,16 @@
+M over R = 0.25655402124145593
+M over R approx = 0.2564
+log_g = 14.61
+No temperature interpolation necessary.
+Interpolating g.
+No temperature interpolation necessary.
+Interpolating g.
+No temperature interpolation necessary.
+Interpolating g.
+No temperature interpolation necessary.
+Interpolating g.
+No temperature interpolation necessary.
+Interpolating g.
+--- 152.70080518722534 seconds ---
+flux Ho = [1.5556028343961484e-13, 1.5067348152142974e-13, 1.5060175240844153e-13, 1.5123204742593419e-13, 1.5223598197712179e-13]
+BB flux = [1.5815996614290719e-13, 1.5116198053182006e-13, 1.5106580377524906e-13, 1.506940613597722e-13, 1.519694354713597e-13]
