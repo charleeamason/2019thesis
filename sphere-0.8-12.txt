@@ -1,3 +1,0 @@
-#M = 0.8 Msun #Req = 12 km
-#spin      Flux(1keV) BolFlux/Fs v_{eq}/c   Area       A/4piR^2   SolidAng   SolidAng/Ss
-1          0x7ffee578e9f0          1.00665          7.648e-05          1809.56          1          1.48897e-29          1.00665
