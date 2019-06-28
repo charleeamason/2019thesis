@@ -30,6 +30,7 @@
 #include "Chi.h"
 #include "PolyOblModelNHQS.h"
 #include "PolyOblModelCFLQS.h"
+#include "PolyOblModelBase.h"
 #include "SphericalOblModel.h"
 #include "OblModelBase.h"
 #include "Units.h"
@@ -59,10 +60,6 @@ int main(int argc, char** argv) try {
   int power=0;
 
   char data_file[80];
-  char angle_file[80] = "angles.txt";
-  char dOmega_file[80] = "dOmega.txt";
-  char boost_file[80] = "boost.txt";
-  char cosbeta_file[80] = "cosbeta.txt";
   char line[80];
   char vert[180];
   char min_file[180];
@@ -234,7 +231,9 @@ int main(int argc, char** argv) try {
   std::cout << "spin = " << omega << " Hz" << std::endl;
   std::cout << "v/c = " << req * 1e5 * omega * 2.0*Units::PI/Units::C << std::endl;
   std::cout << "inclination = " << incl << " degrees" << std::endl;
-  
+
+  double M_over_R = Units::G*mass*Units::MSUN/(req*1e+5*Units::C*Units::C);
+    
   std::cout << std::endl;
  
   // Units conversions.
@@ -251,7 +250,7 @@ int main(int argc, char** argv) try {
   std::cout << "baromega = " << baromega <<std::endl;
 
   north = incl;
-  south = Units::PI - incl;
+  south = incl; //was 180 - incl for previous version of code
 
   std::cout << "mass/radius = " << mass/req << std::endl;
 
@@ -345,12 +344,88 @@ int main(int argc, char** argv) try {
   // nmu = 10; //set equal to spacing in python code
   // numbins = 20;
   dmu = 1.0/(nmu*1.0);
-  //dphi = 2 * Units::PI / (numbins*1.0 + 1.0);
-  dtheta = (Units::PI - 1e-6)/(nmu - 1);
+  dphi = 2 * Units::PI / (numbins*1.0);
+  dtheta = (Units::PI - 1e-6)/(1.0*nmu);
   
+  char angle_file[80];
+  char dOmega_file[80];
+  char boost_file[80];
+  char cosbeta_file[80];
+  
+  std::cout<<"incl = " << incl*180/Units::PI<<"spin =" << omega_cgs<<"M/R = "<< 100.0*M_over_R<<std::endl;
+    if (modelchoice == 3){
+      if (omega_cgs < 1) {
+	if(incl*180/Units::PI != 0){
+	  std::cout<<"spherical, spin <1, nonzero incl"<<std::endl;
+	  sprintf(angle_file, "angles_sph_spin%1.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	  sprintf(dOmega_file, "dOmega_sph_spin%1.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	  sprintf(boost_file, "boost_sph_spin%1.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	  sprintf(cosbeta_file, "cosbeta_sph_spin%1.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	}
+	else {
+	  std::cout<<"spherical, spin <1, zero incl"<<std::endl;
+	  sprintf(angle_file, "angles_sph_spin%1.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	  sprintf(dOmega_file, "dOmega_sph_spin%1.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	  sprintf(boost_file, "boost_sph_spin%1.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	  sprintf(cosbeta_file, "cosbeta_sph_spin%1.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	}
+      
+      }
+     else{
+      if(incl*180/Units::PI != 0){
+	std::cout<<"spherical, spin > 1 , nonzero incl"<<std::endl;
+	sprintf(angle_file, "angles_sph_spin%3.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(dOmega_file, "dOmega_sph_spin%3.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(boost_file, "boost_sph_spin%3.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(cosbeta_file, "cosbeta_sph_spin%3.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+      }
+      else{
+	std::cout<<"spherical, spin > 1, zero incl"<<std::endl;
+	sprintf(angle_file, "angles_sph_spin%3.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(dOmega_file, "dOmega_sph_spin%3.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(boost_file, "boost_sph_spin%3.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(cosbeta_file, "cosbeta_sph_spin%3.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+      }
+     }
+    }
+  else{
+    if (omega_cgs < 1) {
+      if (incl*180/Units::PI != 0){
+        std::cout<<"oblate, spin < 1, nonzero incl"<<std::endl;
+	sprintf(angle_file, "angles_obl_spin%1.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(dOmega_file, "dOmega_obl_spin%1.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(boost_file, "boost_obl_spin%1.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(cosbeta_file, "cosbeta_obl_spin%1.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+      }
+      else{
+	std::cout<<"oblate, spin < 1, zero incl"<<std::endl;
+	sprintf(angle_file, "angles_obl_spin%1.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(dOmega_file, "dOmega_obl_spin%1.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(boost_file, "boost_obl_spin%1.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(cosbeta_file, "cosbeta_obl_spin%1.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+      }
+     }
+    else{
+      if (incl*180/Units::PI != 0){
+        std::cout<<"oblate, spin > 1, nonzero incl"<<std::endl;
+	sprintf(angle_file, "angles_obl_spin%3.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(dOmega_file, "dOmega_obl_spin%3.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(boost_file, "boost_obl_spin%3.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(cosbeta_file, "cosbeta_obl_spin%3.0f_MR%2.0f_incl%2.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+      }
+      else{
+	std::cout<<"oblate, spin > 1, zero incl"<<std::endl;
+	sprintf(angle_file, "angles_obl_spin%3.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(dOmega_file, "dOmega_obl_spin%3.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(boost_file, "boost_obl_spin%3.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+	sprintf(cosbeta_file, "cosbeta_obl_spin%3.0f_MR%2.0f_incl%1.0f.txt", omega_cgs, 100.0*M_over_R, incl*180/Units::PI);
+      }
+    }
+  }
+ 
    //open file for angles
       angles.open(angle_file);
-      angles<<"theta "<< "phi "<<std::endl;
+      angles<<"theta "<< "phi "<<"dOmega "<<"dtheta "<<std::endl;
   //open file for dOmega
       dOmega.open(dOmega_file);
       dOmega<<"theta = rows; phi = columns"<<std::endl;
@@ -360,23 +435,25 @@ int main(int argc, char** argv) try {
   //open file for cosbeta
       cosbeta.open(cosbeta_file);
       cosbeta<<"theta = rows; phi = columns"<<std::endl;
-      
+
+    std::cout<<" dtheta = "<<dtheta<<std::endl;
   // Loop through the hemispheres
     for (int k(0);k<=1; k++){
       
        // Loop through the star's latitudes
-       for (int j(0); j<nmu/2; j++){
-	 //for (int j(3); j<4; j++){
+      for (int j(0); j<nmu/2; j++){
+      // for (int j(3); j<4; j++){
 	 
 	 if(k==0){
 	   //if in northern hemisphere
 	   //mu = (nmu - 1 - j)*dmu;
-	   theta = j*dtheta + 1e-06;
+	   theta = j*dtheta + 1e-06 + 0.5*dtheta;
+	   
 	 }
 	 else{
 	   //if in southern hemisphere
 	   //mu = j*dmu;
-	   theta = Units::PI/2 + ((j + 1)*dtheta + 1e-06) - Units::PI/(2*(nmu - 1)); 
+	   theta = Units::PI/2 + ((j + 1)*dtheta + 1e-06) - 0.5*dtheta; 
 	 }
 	 // theta = acos(mu);
 	 // theta = j*dtheta;
@@ -388,7 +465,8 @@ int main(int argc, char** argv) try {
 	 // Values we need in some of the formulas.
 
 	 if (modelchoice==1){
-	   rspot = calcrspot( omega, mass, theta, req);
+	     rspot = calcrspot( omega, mass, theta, req);
+	   // rspot = R_at_costheta(mu);
 	   cosg = cosgamma(mu,req,rspot,mass,omega);
 	 }
 	 if (modelchoice==3){
@@ -400,7 +478,7 @@ int main(int argc, char** argv) try {
 
 	 //curve.para.dS = dmu * dphi/cosg;
 	 //removed dtheta dphi May 27th
-	 curve.para.dS = sin(theta)/cosg;
+	 curve.para.dS = (sin(theta)*(dtheta*dphi))/cosg;
 	 curve.para.cosgamma = cosg;
 	 curve.para.radius = rspot;
 
@@ -477,18 +555,22 @@ int main(int argc, char** argv) try {
 	 redshift = 1.0/sqrt(1 - 2/x);
        
 	 //Loop through azimuthal angles
+	 // std::cout<<"dphi = "<<dphi<<std::endl;
 	 for (int i(0);i<numbins;i++){
-	   std::cout<<"theta ="<<theta<<" mu ="<<mu<<" phi ="<<curve.t[i]*2*Units::PI - Units::PI
+	   // std::cout<<"i = "<<i<<" phi = "<<curve.t[i]*2*Units::PI<<std::endl;
+	   /* std::cout<<"theta ="<<theta<<" mu ="<<mu<<" phi ="<<curve.t[i]*2*Units::PI - Units::PI
 		    << " cospsi = " << sin(theta)*cos(curve.t[i]*2*Units::PI)
 		    <<" cosbeta ="<<curve.cosbeta[i]
 		    << " dOmega = " << curve.dOmega_s[i]
-		    <<std::endl;
-	   angles<<theta<< "  "<<curve.t[i]*2*Units::PI<<std::endl;
+		    <<std::endl; */
+	   angles<<theta<< "  "<<curve.t[i]*2*Units::PI<<" "<<curve.dOmega_s[i]<<" "<<dtheta<<std::endl;
 	   dOmega<<" "<<curve.dOmega_s[i];
 	   boost<<" "<<curve.eta[i];
 	   cosbeta<<" "<<curve.cosbeta[i];
 
-
+	   /*  if (j==1)
+	     std::cout<<" t = "<<curve.t[i] 
+	     <<" dOmega[i] = "<<curve.dOmega_s[i]<<std::endl; */
 
 	   
 	   dArea_mu += curve.para.dS * pow( Units::nounits_to_cgs( rspot*1.0e-5, Units::LENGTH ),2) ;
@@ -510,8 +592,16 @@ int main(int argc, char** argv) try {
 	   
 	   }
        
-	 }
-
+	 } //end of azimuthal angle loop
+	 std::cout
+	   <<"j = "<<j
+	   <<"theta = "<< theta
+	   <<" costheta = "<< mu
+	   <<" R = "<<Units::nounits_to_cgs( rspot*1.0e-5, Units::LENGTH )
+	   <<" dS = "<< curve.para.dS
+	   <<" dArea_mu = "<< dArea_mu
+	   <<" dOmega = "<< dOmega_mu*pow(rspot/distance,2)
+	   <<std::endl;
 	 dOmega<<std::endl;
 	 boost<<std::endl;
 	 cosbeta<<std::endl;
@@ -532,7 +622,9 @@ int main(int argc, char** argv) try {
   } //end of hemispheres loop
 
 
-  std::cout << "Solid Angle = " << Solid_Angle << std::endl;
+  std::cout << "Solid Angle = " << Omega_s << std::endl;
+
+  // std::cout<<"Flux = " << BoloFlux<< std::endl;
   
   std::cout << "distance = " << distance <<std::endl;
   
@@ -543,6 +635,7 @@ int main(int argc, char** argv) try {
   std::cout << "pi R^2/D^2 (1+z)^2 = " <<   Units::PI * pow(req,2)/(1.0-2.0*mass/req) << std::endl;
 
   std::cout << "R^2/D^2 (1+z)^{-2} = " << pow(req,2)*(1.0-2.0*mass/req) << std::endl;
+  
   
  // Print out information about the model
   /*
@@ -569,7 +662,7 @@ int main(int argc, char** argv) try {
     }
     myfile.close(); 
 
-    angles.close();
+    //angles.close();
   //  out = fopen(out_file, "a");
 	
  // Print out information about the model

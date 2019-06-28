@@ -8,7 +8,7 @@
 #include <vector>
 
 #define NN 20
-#define NUMBINS 256
+#define NUMBINS 1000
 #define NCURVES 2
 
 struct Parameters {

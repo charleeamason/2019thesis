@@ -5,7 +5,7 @@ Created on Mon May 27 11:25:51 2019
 
 @author: charlee
 
-A program which finds the flux emitted by an oblate, rotating neutron star
+A program which finds the flux emitted by a spherical, rotating neutron star
 using general relativity in an SPIN-aligned coordinate system. 
 A hydrogen atmosphere model from Ho et al. is compared to a simple blackbody.
 """
@@ -31,8 +31,6 @@ def get_flux_BB(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname,
     const_inte = (k_B*T)/h 
 
     E_dx = E_list_obs[1] - E_list_obs[0]
-    
-    #flux master tables must be altered when ntheta, nphi is changed!
     dphi = 2*np.pi/nphi
 
     theta_all = np.zeros(ntheta)
@@ -49,7 +47,6 @@ def get_flux_BB(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname,
     cos_beta_all = np.loadtxt('flux-master/ntheta' + str(ntheta) + '/cosbeta' + file_names + '.txt',\
                               skiprows = 1, unpack = True).T
     
-    
 
     #make theta list
     for m in range(2): #loop through hemispheres
@@ -64,7 +61,7 @@ def get_flux_BB(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname,
            
     #make phi list 
     for y in range(nphi):
-        phi_all[y] = 1e-06 + y*dphi
+        phi_all[y] = 1e-06 + y*dphi 
     
     spectral_flux = np.zeros(len(E_list_obs))
     spectral_I = np.zeros(len(E_list_obs))
@@ -76,8 +73,7 @@ def get_flux_BB(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname,
     for i in range(len(theta_all)):
         for j in range(len(phi_all)):
             #print(i,j)
-            R = get_R(theta_all[i], M, R_eq, spin_freq)  
-            
+            R = R_eq               
             M_over_R = (G*M)/(c**2*R) #GM/Rc^2 - acceptable MoverR range 0.1 to 0.284
             #print("M over R =", M_over_R)
             dOmega = dOmega_all[i][j]
@@ -111,12 +107,13 @@ def get_flux_BB(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname,
             F_integrand = np.zeros(len(Inu))
             Inu_integrand = np.zeros(len(Inu))
             SA_integrand = np.zeros(len(Inu))
-            SA_integrand2 = np.zeros(len(Inu))    
+            #SA_integrand2 = np.zeros(len(Inu))    
             
             #redshift = 1
+            
             #exlude sections of rings we cannot see (negative values of mu)
             if mu > 0:
-                SA_integrand2 = (dOmega*solid_const)
+                #SA_integrand2 = (dOmega*solid_const)
                 #print("Solid angle 2 =", SA_integrand2)
                 #print("E_initial =", E_list_em[0], "E_final =", E_list_em[-1])
                 for k in range(len(Inu)):
@@ -132,14 +129,12 @@ def get_flux_BB(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname,
             #print("Solid angle integrand =", sum(SA_integrand)*E_dx_em)
         theta_integrand[i] = sum(phi_integrand)*dphi #total flux at each theta
         theta_integrand_SA[i] = sum(phi_integrand_SA) 
-        #print("R = ", R)
     #print(theta_integrand_SA)
     bolo_flux = sum(theta_integrand)*dtheta/(dphi*dtheta) #dOmega already has dphi dtheta in it
     SA = sum(theta_integrand_SA)
-    print("Solid angle =", SA)
-    M_over_Req = (G*M)/(c**2*R_eq)  
+    #print("Solid angle =", SA)
     
-    return bolo_flux, spectral_flux, spectral_I, log_g, M_over_Req
+    return bolo_flux, spectral_flux, spectral_I, log_g, M_over_R
     
 def get_flux_H(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname, ntheta, nphi, M_over_R):
     """Calculates flux for a relativistic star with an H atmosphere
@@ -161,11 +156,13 @@ def get_flux_H(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname, 
     const_inte = (k_B*T)/h 
     
     #flux master tables must be altered when ntheta, nphi is changed!
+    ntheta = 30 #number of theta divisions
+    nphi = 60 #number of phi divisions 
     dphi = 2*np.pi/nphi
 
     theta_all = np.zeros(ntheta)
     phi_all = np.zeros(nphi)
-            
+                
     file_names = '_{0}_MR{1}_incl{2}'.format(fname, int(100*np.round(M_over_R,2)), inclination)
     
     dtheta = np.loadtxt('flux-master/ntheta' + str(ntheta) + '/angles' + file_names + '.txt',\
@@ -176,8 +173,7 @@ def get_flux_H(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname, 
                            skiprows = 1, unpack = True).T
     cos_beta_all = np.loadtxt('flux-master/ntheta' + str(ntheta) + '/cosbeta' + file_names + '.txt',\
                               skiprows = 1, unpack = True).T
-    
-    
+
     #make theta list
     for m in range(2): #loop through hemispheres
         for x in range(int(ntheta/2)): #loop through latitudes 
@@ -257,7 +253,5 @@ def get_flux_H(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname, 
             phi_integrand[j] = sum(F_integrand)*E_dx_em
         theta_integrand[i] = sum(phi_integrand)*dphi #total flux at each theta
     bolo_flux = sum(theta_integrand)*dtheta/(dtheta*dphi)
-   
-    M_over_Req = (G*M)/(c**2*R_eq)  
-      
-    return bolo_flux, spectral_flux, spectral_I, log_g, M_over_Req
+             
+    return bolo_flux, spectral_flux, spectral_I, log_g, M_over_R

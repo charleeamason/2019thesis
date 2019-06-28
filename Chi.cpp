@@ -48,7 +48,8 @@ class LightCurve ComputeAngles( class LightCurve* incurve,
   curve.problem = false;
 
 
-  shift_t = curve.junk.shift_t;
+  //shift_t = curve.junk.shift_t;
+  shift_t = 0.0;
   infile_is_set = curve.junk.infile_is_set;
   numbins = curve.numbins;
 
@@ -465,18 +466,22 @@ double calcrspot( double omega, double mass, double theta, double req){ //zeta d
   double mu, rspot;
 	    double pi, zeta, epsilon, G;
 	    double P2, P4, a0, a2, a4;
-	    G = 1.32746E+11;
+	    //G = 1.32746E+11;
 	    mu = cos(theta);
 	    pi = 4.0*atan(1.0);
 	    zeta = mass/req;
 	    epsilon = pow(req*omega,2.0)/zeta;	    
 	    
-	    a0 = -0.18*epsilon + 0.23*zeta*epsilon - 0.05*pow(epsilon,2);
-	    a2 = -0.39*epsilon + 0.29*zeta*epsilon + 0.13*pow(epsilon,2);
+	    // a0 = -0.18*epsilon + 0.23*zeta*epsilon - 0.05*pow(epsilon,2);
+	    // a2 = -0.39*epsilon + 0.29*zeta*epsilon + 0.13*pow(epsilon,2);
 	    // a4 = +0.04*epsilon - 0.15*zeta*epsilon + 0.07*pow(epsilon,2);
 
-	    a4 = 8.0/3.0 * (  - a0 + 0.5*a2);
+	    // a4 = 8.0/3.0 * (  - a0 + 0.5*a2);
 
+	    a2 =  2.0/3.0 * epsilon*(-0.788 + 1.030*zeta);
+	    a0 = 0.5*a2;
+	    a4 = 0.0;
+	      
 	    P2 = LegP2(mu);
 	    P4 = LegP4(mu);
 

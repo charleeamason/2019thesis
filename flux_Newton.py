@@ -10,7 +10,7 @@ using Newtonian gravity only in an SPIN-aligned coordinate system.
 A hydrogen atmosphere model from Ho et al. is compared to a simple blackbody.
 """
 
-def get_flux_BB(inclination, log_T, E_list, M, R, dist, spin_freq, ntheta, nphi):
+def get_flux_BB(inclination, log_T, E_list, M, R, dist, spin_freq, ntheta, nphi, M_over_R):
     
     """Calculates flux for a Newtonian star with a BB atmosphere
     in a spin-aligned system given inclination and T."""
@@ -73,7 +73,7 @@ def get_flux_BB(inclination, log_T, E_list, M, R, dist, spin_freq, ntheta, nphi)
     
     return bolo_flux, spectral_flux, spectral_I
     
-def get_flux_H(inclination, log_T, E_list, M, R, dist, spin_freq, ntheta, nphi):
+def get_flux_H(inclination, log_T, E_list, M, R, dist, spin_freq, ntheta, nphi, M_over_R):
     """Calculates flux for a Newtonian star with an H atmosphere
     in a spin-aligned system given inclination, T, and g."""
 
