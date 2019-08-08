@@ -36,14 +36,18 @@ def get_flux_BB(inclination, log_T, E_list, M, R, dist, spin_freq, ntheta, nphi,
     theta_all = np.linspace(1e-06, np.pi,ntheta)
     phi_all = np.linspace(-np.pi,np.pi, nphi)
     
-    theta_dx = theta_all[1] - theta_all[0]
-    phi_dx = phi_all[1] - phi_all[0]
+    dtheta = theta_all[1] - theta_all[0]
+    dphi = phi_all[1] - phi_all[0]
     
+    #print("dphi, dtheta", dphi, dtheta)
+    #print("dphi*dtheta =", dphi*dtheta)
+
     theta_integrand = np.zeros(len(theta_all))
     phi_integrand = np.zeros(len(phi_all))
 
     spectral_flux = np.zeros(len(E_list))
-    spectral_I = np.zeros(len(E_list))
+
+   # spectral_I = np.zeros(len(E_list))
     
     for i in range(len(theta_all)):
         for j in range(len(phi_all)):
@@ -64,14 +68,13 @@ def get_flux_BB(inclination, log_T, E_list, M, R, dist, spin_freq, ntheta, nphi,
                 #F_integrand = np.zeros(len(Inu))
                 for k in range(len(Inu)):
                     F_integrand[k]  = solid_const*zeta*np.sin(theta_all[i])*\
-                                      Inu[k]*const_inte
-                    spectral_flux[k] = spectral_flux[k] + F_integrand[k]*(theta_dx/phi_dx)
-                    spectral_I[k] = spectral_I[k] + Inu[k]*const_inte
+                                      Inu[k]*(dtheta*dphi)
+                    spectral_flux[k] = spectral_flux[k] + F_integrand[k]
             phi_integrand[j] = sum(F_integrand)*E_dx
-        theta_integrand[i] = sum(phi_integrand)*phi_dx #total flux at each theta
-    bolo_flux = sum(theta_integrand)*theta_dx
+        theta_integrand[i] = sum(phi_integrand)*dphi #total flux at each theta
+    bolo_flux = sum(theta_integrand)*dtheta*const_inte/(dtheta*dphi)
     
-    return bolo_flux, spectral_flux, spectral_I
+    return bolo_flux, spectral_flux
     
 def get_flux_H(inclination, log_T, E_list, M, R, dist, spin_freq, ntheta, nphi, M_over_R):
     """Calculates flux for a Newtonian star with an H atmosphere
@@ -100,8 +103,8 @@ def get_flux_H(inclination, log_T, E_list, M, R, dist, spin_freq, ntheta, nphi, 
     theta_all = np.linspace(1e-06, np.pi,ntheta)
     phi_all = np.linspace(-np.pi,np.pi, nphi)
     
-    theta_dx = theta_all[1] - theta_all[0]
-    phi_dx = phi_all[1] - phi_all[0]
+    dtheta = theta_all[1] - theta_all[0]
+    dphi= phi_all[1] - phi_all[0]
     
     phi_integrand = np.zeros(len(phi_all))
     theta_integrand = np.zeros(len(theta_all))
@@ -133,19 +136,16 @@ def get_flux_H(inclination, log_T, E_list, M, R, dist, spin_freq, ntheta, nphi, 
             
             #exlude sections of rings we cannot see (negative values of zeta)
             F_integrand = np.zeros(len(Inu_final))
-            I_integrand = np.zeros(len(Inu_final))
             
             if zeta > 0:
                 
                 for k in range(len(Inu_final)):
                     
                     F_integrand[k] = solid_const*T**3*zeta*np.sin(theta_all[i])*\
-                                     Inu_final[k]*const_inte #*boost**3
-                    I_integrand[k] = T**3*Inu_final[k]*const_inte #*boost**3
-                    spectral_flux[k] = spectral_flux[k] + F_integrand[k]*(theta_dx/phi_dx)
-                    spectral_I[k] = spectral_I[k] + I_integrand[k]
+                                     Inu_final[k]*dtheta*dphi #*boost**3
+                    spectral_flux[k] = spectral_flux[k] + F_integrand[k]
             phi_integrand[j] = sum(F_integrand)*E_dx
-        theta_integrand[i] = sum(phi_integrand)*phi_dx #total flux at each theta
-    bolo_flux = sum(theta_integrand)*theta_dx
+        theta_integrand[i] = sum(phi_integrand)*dphi #total flux at each theta
+    bolo_flux = sum(theta_integrand)*dtheta*const_inte/(dtheta*dphi)
              
-    return bolo_flux, spectral_flux, spectral_I
+    return bolo_flux, spectral_flux

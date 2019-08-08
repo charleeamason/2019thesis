@@ -67,7 +67,6 @@ def get_flux_BB(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname,
         phi_all[y] = 1e-06 + y*dphi
     
     spectral_flux = np.zeros(len(E_list_obs))
-    spectral_I = np.zeros(len(E_list_obs))
     theta_integrand = np.zeros(len(theta_all))
     theta_integrand_SA = np.zeros(len(theta_all))
     phi_integrand = np.zeros(len(phi_all))
@@ -109,24 +108,18 @@ def get_flux_BB(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname,
             #Inu_obs = Inu*(E_list_obs/E_list)**3
             
             F_integrand = np.zeros(len(Inu))
-            Inu_integrand = np.zeros(len(Inu))
             SA_integrand = np.zeros(len(Inu))
-            SA_integrand2 = np.zeros(len(Inu))    
-            
+                        
             #redshift = 1
             #exlude sections of rings we cannot see (negative values of mu)
             if mu > 0:
-                SA_integrand2 = (dOmega*solid_const)
-                #print("Solid angle 2 =", SA_integrand2)
                 #print("E_initial =", E_list_em[0], "E_final =", E_list_em[-1])
                 for k in range(len(Inu)):
                     #Inu[k] = 1
-                    F_integrand[k] = solid_const*const_inte*boost**4*redshift**4*Inu[k]*dOmega
-                    Inu_integrand[k] = solid_const*const_inte*boost**4*redshift**4*Inu[k]
+                    F_integrand[k] = solid_const*boost**4*redshift**4*Inu[k]*dOmega
                     SA_integrand[k] = SA_integrand[k] + (dOmega*solid_const)\
                     /(E_list_em[-1] - E_list_em[0] + E_dx_em)
-                    spectral_flux[k] = spectral_flux[k] + F_integrand[k]/(dphi*dtheta)
-                    spectral_I[k] = spectral_I[k] + Inu_integrand[k]
+                    spectral_flux[k] = spectral_flux[k] + F_integrand[k]
             phi_integrand[j] = sum(F_integrand)*E_dx_em
             phi_integrand_SA[j] = sum(SA_integrand)*E_dx_em
             #print("Solid angle integrand =", sum(SA_integrand)*E_dx_em)
@@ -134,12 +127,12 @@ def get_flux_BB(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname,
         theta_integrand_SA[i] = sum(phi_integrand_SA) 
         #print("R = ", R)
     #print(theta_integrand_SA)
-    bolo_flux = sum(theta_integrand)*dtheta/(dphi*dtheta) #dOmega already has dphi dtheta in it
+    bolo_flux = sum(theta_integrand)*dtheta*const_inte/(dphi*dtheta) #dOmega already has dphi dtheta in it
     SA = sum(theta_integrand_SA)
     print("Solid angle =", SA)
     M_over_Req = (G*M)/(c**2*R_eq)  
     
-    return bolo_flux, spectral_flux, spectral_I, log_g, M_over_Req
+    return bolo_flux, spectral_flux, log_g, M_over_Req
     
 def get_flux_H(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname, ntheta, nphi, M_over_R):
     """Calculates flux for a relativistic star with an H atmosphere
@@ -199,7 +192,6 @@ def get_flux_H(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname, 
     E_dx = E_list_obs[1] - E_list_obs[0]
     #LENGTH OF HO FILES IS 166 - MAKE SURE THIS IS STILL TRUE
     spectral_flux = np.zeros(166)
-    spectral_I = np.zeros(166)
 
     for i in range(len(theta_all)):
         for j in range(len(phi_all) - 1):
@@ -241,23 +233,19 @@ def get_flux_H(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname, 
             Inu_final = Ho.interp_E(E_temp, Inu_temp, E_list_em)
             
             F_integrand = np.zeros(len(Inu_final))
-            I_integrand = np.zeros(len(Inu_final))
             
             #exlude sections of rings we cannot see (negative values of mu)
             if mu > 0:
             #redshift**4 if using E_list_obs 
                 for k in range(len(Inu_final)):
                     
-                    F_integrand[k] = solid_const*const_inte*T**3*boost**4\
+                    F_integrand[k] = solid_const*T**3*boost**4\
                                 *Inu_final[k]*dOmega*redshift**4
-                    I_integrand[k] = solid_const*const_inte*T**3*boost**4\
-                                *Inu_final[k]*redshift**4
-                    spectral_flux[k] = spectral_flux[k] + F_integrand[k]/(dtheta*dphi)
-                    spectral_I[k] = spectral_I[k] + I_integrand[k]
+                    spectral_flux[k] = spectral_flux[k] + F_integrand[k]
             phi_integrand[j] = sum(F_integrand)*E_dx_em
         theta_integrand[i] = sum(phi_integrand)*dphi #total flux at each theta
-    bolo_flux = sum(theta_integrand)*dtheta/(dtheta*dphi)
+    bolo_flux = sum(theta_integrand)*dtheta*const_inte/(dtheta*dphi)
    
     M_over_Req = (G*M)/(c**2*R_eq)  
       
-    return bolo_flux, spectral_flux, spectral_I, log_g, M_over_Req
+    return bolo_flux, spectral_flux, log_g, M_over_Req
