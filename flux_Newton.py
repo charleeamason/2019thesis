@@ -39,8 +39,7 @@ def get_flux_BB(inclination, log_T, E_list, M, R, dist, spin_freq, ntheta, nphi,
     dtheta = theta_all[1] - theta_all[0]
     dphi = phi_all[1] - phi_all[0]
     
-    #print("dphi, dtheta", dphi, dtheta)
-    #print("dphi*dtheta =", dphi*dtheta)
+    print("dphi*dtheta =", dphi*dtheta)
 
     theta_integrand = np.zeros(len(theta_all))
     phi_integrand = np.zeros(len(phi_all))

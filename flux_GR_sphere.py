@@ -48,7 +48,7 @@ def get_flux_BB(inclination, log_T, E_list_obs, M, R_eq, dist, spin_freq, fname,
                            skiprows = 1, unpack = True).T
     cos_beta_all = np.loadtxt('flux-master/ntheta' + str(ntheta) + '/cosbeta' + file_names + '.txt',\
                               skiprows = 1, unpack = True).T
-    
+    print("dphi*dtheta =", dphi*dtheta)
 
     #make theta list
     for m in range(2): #loop through hemispheres
